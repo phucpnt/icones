@@ -13,7 +13,7 @@ import routes from '~pages'
 const app = createApp(App)
 
 const router = createRouter({
-  history: process.env.NODE_ENV === 'production' ? '/icones/' : isElectron ? createWebHashHistory(basePath) : createWebHistory(basePath),
+  history: process.env.NODE_ENV === 'production' ? createWebHistory('/icones/'): isElectron ? createWebHashHistory(basePath) : createWebHistory(basePath),
   routes,
 })
 
