@@ -71,7 +71,7 @@ jobs:
           cache: pnpm
       - run: pnpm install
       - name: Build
-        run: pnpm run build
+        run: pnpm run build --base=/icones
       - name: Deploy github page
         uses: peaceiris/actions-gh-pages@v3
         with:
