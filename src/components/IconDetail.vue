@@ -18,6 +18,30 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'copy', 'next', 'prev'])
 
+const colors = [
+  { name: 'blue5', hex: '#204d77' },
+  { name: 'orange', hex: '#f17d40' },
+  { name: 'blue2', hex: '#338ed8' },
+  { name: 'mint', hex: '#0BA373' },
+  { name: 'green', hex: '#0BA373' },
+  { name: 'carmine', hex: '#e4553e' },
+  { name: 'yellow', hex: '#f0ad4e' },
+  { name: 'seaSerpent', hex: '#5bc0de' },
+  { name: 'azureishWhite', hex: '#d4dded' },
+  { name: 'red', hex: '#FB2300' },
+  { name: 'charcoal', hex: '#303F52' },
+  { name: 'blue6', hex: '#344E73' },
+  { name: 'blue3', hex: '#2C6BC4' },
+  { name: 'blue39', hex: '#2C6BC4' },
+  { name: 'blue1', hex: '#77AEFB' },
+  { name: 'purple', hex: '#7E81C6' },
+  { name: 'darkCerulean', hex: '#103E86' },
+  { name: 'rufous', hex: '#A91708' },
+  { name: 'fulvous', hex: '#E17C00' },
+  { name: 'xanadu', hex: '#7A8577' },
+  { name: 'blue4', hex: '#0074AF' },
+]
+
 const caseSelector = ref<HTMLDivElement>()
 const transformedId = computed(() => getTransformedId(props.icon))
 const color = computed(() => copyPreviewColor.value ? previewColor.value : 'currentColor')
@@ -61,6 +85,13 @@ async function copy(type: string) {
   emit('copy', await copyText(text))
 }
 
+async function copyIconCode(colorCode: string) {
+  const iconName = props.icon
+  const clipboardText = `ic/${iconName}/${colorCode}`
+  await navigator.clipboard.writeText(clipboardText)
+  emit('copy', clipboardText)
+}
+
 async function download(type: string) {
   pushRecentIcon(props.icon)
   const text = await getIconSnippet(props.icon, type, false, color.value)
@@ -93,7 +124,10 @@ const collection = computed(() => {
 
 <template>
   <div class="p-2 flex flex-col flex-wrap md:flex-row md:text-left relative">
-    <IconButton class="absolute top-0 right-0 p-3 text-2xl flex-none leading-none" icon="carbon:close" @click="$emit('close')" />
+    <IconButton
+      class="absolute top-0 right-0 p-3 text-2xl flex-none leading-none" icon="carbon:close"
+      @click="$emit('close')"
+    />
     <div :style="{ color: previewColor }">
       <ColorPicker v-model:value="previewColor" class="inline-block">
         <Icon :key="icon" outer-class="p-4 text-8xl" :icon="icon" />
@@ -112,21 +146,15 @@ const collection = computed(() => {
         <IconButton icon="carbon:chevron-up" class="ml-2" @click="showCaseSelect = !showCaseSelect" />
         <div class="flex-auto" />
         <div
-          v-if="showCaseSelect"
-          ref="caseSelector"
+          v-if="showCaseSelect" ref="caseSelector"
           class="absolute left-0 bottom-1.8em text-sm rounded shadow p-2 bg-white dark:bg-dark-100 dark:border dark:border-dark-200"
         >
           <div
-            v-for="[k, v] of Object.entries(idCases)"
-            :key="k"
-            class="flex items-center p-1 cursor-pointer"
-            :class="k === preferredCase ? 'text-primary' : ''"
-            @click="preferredCase = k as any"
+            v-for="[k, v] of Object.entries(idCases)" :key="k" class="flex items-center p-1 cursor-pointer"
+            :class="k === preferredCase ? 'text-primary' : ''" @click="preferredCase = k as any"
           >
             <Icon
-              icon="carbon:checkmark"
-              class="text-primary text-lg"
-              outer-class="mr-1"
+              icon="carbon:checkmark" class="text-primary text-lg" outer-class="mr-1"
               :class="k === preferredCase ? '' : 'opacity-0'"
             />
             <span class="flex-auto mr-2">{{ v(icon) }}</span>
@@ -138,21 +166,32 @@ const collection = computed(() => {
         Collection:
         <RouterLink
           class="ml-1 text-gray-600 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-200"
-          :to="`/collection/${collection.id}`"
-          @click="$emit('close')"
+          :to="`/collection/${collection.id}`" @click="$emit('close')"
         >
           {{ collection.name }}
         </RouterLink>
       </p>
 
       <div>
+        <div class="text-gray-500 text-sm dark:text-dark-500 !outline-none">
+          Click to copy
+        </div>
+        <div class="flex">
+          <button
+            v-for="(color, index) in colors" :key="color.name" class="
+        inline-block leading-1em border border-base my-2 mr-2 font-sans pl-2 pr-3 py-1 rounded-full text-sm cursor-pointer
+        hover:bg-gray-50 dark:hover:bg-dark-200
+      " @click="copyIconCode(color.name)"
+          >
+            <Icon outer-class="inline-block text-lg align-middle" :icon="icon" :style="{ color: color.hex }" />
+            {{ color.name }}
+          </button>
+        </div>
         <button
           class="
             inline-block leading-1em border border-base my-2 mr-2 font-sans pl-2 pr-3 py-1 rounded-full text-sm cursor-pointer
             hover:bg-gray-50 dark:hover:bg-dark-200
-          "
-          :class="inBag(icon) ? 'text-primary' : 'text-gray-500'"
-          @click="toggleBag(icon)"
+          " :class="inBag(icon) ? 'text-primary' : 'text-gray-500'" @click="toggleBag(icon)"
         >
           <template v-if="inBag(icon)">
             <Icon class="inline-block text-lg align-middle" icon="carbon:shopping-bag" />
@@ -165,13 +204,10 @@ const collection = computed(() => {
         </button>
 
         <button
-          v-if="inBag(icon)"
-          class="
+          v-if="inBag(icon)" class="
             inline-block leading-1em border border-base my-2 mr-2 font-sans pl-2 pr-3 py-1 rounded-full text-sm cursor-pointer
             hover:bg-gray-50 dark:hover:bg-dark-200
-          "
-          :class="activeMode === 'select' ? 'text-primary' : 'text-gray-500'"
-          @click="toggleSelectingMode"
+          " :class="activeMode === 'select' ? 'text-primary' : 'text-gray-500'" @click="toggleSelectingMode"
         >
           <Icon class="inline-block text-lg align-middle" icon="carbon:list-checked" />
           <span class="inline-block align-middle ml1">multiple select</span>
@@ -181,114 +217,110 @@ const collection = computed(() => {
           class="
             inline-block leading-1em border border-base my-2 mr-2 font-sans pl-2 pr-3 py-1 rounded-full text-sm cursor-pointer
             hover:bg-gray-50 dark:hover:bg-dark-200
-          "
-          :class="copyPreviewColor ? 'text-primary' : 'text-gray-500'"
-          @click="copyPreviewColor = !copyPreviewColor"
+          " :class="copyPreviewColor ? 'text-primary' : 'text-gray-500'" @click="copyPreviewColor = !copyPreviewColor"
         >
           <Icon v-if="!copyPreviewColor" class="inline-block text-lg align-middle" icon="carbon:checkbox" />
           <Icon v-else class="inline-block text-lg align-middle" icon="carbon:checkbox-checked" />
           <span class="inline-block align-middle ml1">copy with color</span>
         </button>
-      </div>
 
-      <div class="flex flex-wrap mt-2">
-        <div class="mr-4">
-          <div class="my-1 text-gray-500 text-sm">
-            Snippets
+        <!-- ... -->
+
+        <div class="flex flex-wrap mt-2">
+          <div class="mr-4">
+            <div class="my-1 text-gray-500 text-sm">
+              Snippets
+            </div>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('svg')">
+              SVG
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('svg-symbol')">
+              SVG Symbol
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('html')">
+              Iconify
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('pure-jsx')">
+              JSX
+            </button>
           </div>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('svg')">
-            SVG
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('svg-symbol')">
-            SVG Symbol
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('html')">
-            Iconify
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('pure-jsx')">
-            JSX
-          </button>
-        </div>
-        <div class="mr-4">
-          <div class="my-1 text-gray-500 text-sm">
-            Components
+          <div class="mr-4">
+            <div class="my-1 text-gray-500 text-sm">
+              Components
+            </div>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('vue')">
+              Vue
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('vue-ts')">
+              Vue<sup class="opacity-50 -mr-1">TS</sup>
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('jsx')">
+              React
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('tsx')">
+              React<sup class="opacity-50 -mr-1">TS</sup>
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('svelte')">
+              Svelte
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('qwik')">
+              Qwik
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('unplugin')">
+              Unplugin Icons
+            </button>
           </div>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('vue')">
-            Vue
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('vue-ts')">
-            Vue<sup class="opacity-50 -mr-1">TS</sup>
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('jsx')">
-            React
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('tsx')">
-            React<sup class="opacity-50 -mr-1">TS</sup>
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('svelte')">
-            Svelte
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('qwik')">
-            Qwik
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('unplugin')">
-            Unplugin Icons
-          </button>
-        </div>
-        <div class="mr-4">
-          <div class="my-1 text-gray-500 text-sm">
-            Links
+          <div class="mr-4">
+            <div class="my-1 text-gray-500 text-sm">
+              Links
+            </div>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('url')">
+              URL
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('data_url')">
+              Data URL
+            </button>
           </div>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('url')">
-            URL
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('data_url')">
-            Data URL
-          </button>
-        </div>
-        <div class="mr-4">
-          <div class="my-1 text-gray-500 text-sm">
-            Download
+          <div class="mr-4">
+            <div class="my-1 text-gray-500 text-sm">
+              Download
+            </div>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="download('svg')">
+              SVG
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="download('vue')">
+              Vue
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="download('jsx')">
+              React
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="download('tsx')">
+              React<sup class="opacity-50 -mr-1">TS</sup>
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="download('svelte')">
+              Svelte
+            </button>
+            <button class="btn small mr-1 mb-1 opacity-75" @click="download('qwik')">
+              Qwik
+            </button>
           </div>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="download('svg')">
-            SVG
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="download('vue')">
-            Vue
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="download('jsx')">
-            React
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="download('tsx')">
-            React<sup class="opacity-50 -mr-1">TS</sup>
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="download('svelte')">
-            Svelte
-          </button>
-          <button class="btn small mr-1 mb-1 opacity-75" @click="download('qwik')">
-            Qwik
-          </button>
-        </div>
-        <div class="mr-4">
-          <div class="my-1 text-gray-500 text-sm">
-            View on
+          <div class="mr-4">
+            <div class="my-1 text-gray-500 text-sm">
+              View on
+            </div>
+            <a
+              v-if="collection" class="btn small mr-1 mb-1 opacity-75"
+              :href="`https://icon-sets.iconify.design/${collection.id}/?query=${icon.split(':')[1]}`" target="_blank"
+            >
+              Iconify
+            </a>
+            <a
+              v-if="collection" class="btn small mr-1 mb-1 opacity-75"
+              :href="`https://uno.antfu.me/?s=i-${icon.replace(':', '-')}`" target="_blank"
+            >
+              UnoCSS
+            </a>
           </div>
-          <a
-            v-if="collection"
-            class="btn small mr-1 mb-1 opacity-75"
-            :href="`https://icon-sets.iconify.design/${collection.id}/?query=${icon.split(':')[1]}`"
-            target="_blank"
-          >
-            Iconify
-          </a>
-          <a
-            v-if="collection"
-            class="btn small mr-1 mb-1 opacity-75"
-            :href="`https://uno.antfu.me/?s=i-${icon.replace(':', '-')}`"
-            target="_blank"
-          >
-            UnoCSS
-          </a>
         </div>
       </div>
     </div>
