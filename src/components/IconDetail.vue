@@ -178,12 +178,12 @@ const collection = computed(() => {
         </div>
         <div class="flex">
           <button
-            v-for="(color, index) in colors" :key="color.name" class="
+            v-for="(color, index) in colors" :key="index" class="
         inline-block leading-1em border border-base my-2 mr-2 font-sans pl-2 pr-3 py-1 rounded-full text-sm cursor-pointer
         hover:bg-gray-50 dark:hover:bg-dark-200
       " @click="copyIconCode(color.name)"
           >
-            <Icon outer-class="inline-block text-lg align-middle" :icon="icon" :style="{ color: color.hex }" />
+            <Icon :key="icon" outer-class="inline-block text-lg align-middle" :icon="icon" :style="{ color: color.hex }" />
             {{ color.name }}
           </button>
         </div>
