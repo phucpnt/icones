@@ -184,7 +184,7 @@ const collection = computed(() => {
       " @click="copyIconCode(color.name)"
           >
             <Icon :key="icon" outer-class="inline-block text-lg align-middle" :icon="icon" :style="{ color: color.hex }" />
-            {{ color.name }}
+            {{ color.name }}/ #{{ color.hex }}
           </button>
         </div>
         <button
