@@ -4,6 +4,7 @@ import { activeMode, bags, getSearchResults, iconSize, isCurrentCollectionLoadin
 import { isLocalMode } from '../env'
 import { cacheCollection, specialTabs } from '../data'
 import { getIconSnippet } from '../utils/icons'
+import { colors } from '../utils/colors'
 
 const showBag = $ref(false)
 let copied = $ref(false)
@@ -244,6 +245,17 @@ useEventListener(categoriesContainer, 'wheel', (e: WheelEvent) => {
           </form>
 
           <Icon v-if="search" icon="carbon:close" class="m-auto text-lg -mr-1 opacity-60" @click="search = ''" />
+        </div>
+
+        <div class="flex flex-wrap py-6 px-8">
+          <span
+            v-for="color in colors"
+            :key="color.name"
+            class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 mt-1 mr-1"
+            :style="{ color: color.hex }"
+          >
+            {{ color.hex }}
+          </span>
         </div>
 
         <!-- Variants --->

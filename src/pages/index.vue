@@ -2,7 +2,9 @@
 import type { PresentType } from '../data'
 import { sortAlphabetically } from '../store'
 import { categories, categorySearch, favoritedCollections, filteredCollections, recentCollections } from '../data'
+import { colors } from '../utils/colors'
 
+const emit = defineEmits(['close', 'copy', 'next', 'prev'])
 const input = ref<HTMLInputElement>()
 const categorized = computed(() => [
   {
@@ -36,6 +38,10 @@ function onKeydown(e: KeyboardEvent) {
     router.replace(`/collection/all?s=${categorySearch.value}`)
     categorySearch.value = ''
   }
+}
+
+function copyColor(color: string) {
+  emit('copy', color)
 }
 </script>
 
@@ -92,6 +98,16 @@ function onKeydown(e: KeyboardEvent) {
       </RouterLink>
     </div>
 
+    <div class="flex flex-grow w-full py-6 justify-center items-center">
+      <span
+        v-for="color in colors"
+        :key="color.name"
+        class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 mr-2"
+        :style="{ color: color.hex }"
+      >
+        {{ color.hex }}
+      </span>
+    </div>
     <!-- Category listing -->
     <template v-for="c of categorized" :key="c.name">
       <div v-if="(c.collections).length" px4>

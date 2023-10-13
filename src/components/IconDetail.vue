@@ -4,6 +4,7 @@ import { collections } from '../data'
 import { activeMode, copyPreviewColor, getTransformedId, inBag, preferredCase, previewColor, pushRecentIcon, showCaseSelect, showHelp, toggleBag } from '../store'
 import { Download } from '../utils/pack'
 import { idCases } from '../utils/case'
+import { colors } from '../utils/colors'
 
 const props = defineProps({
   icon: {
@@ -17,30 +18,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'copy', 'next', 'prev'])
-
-const colors = [
-  { name: 'blue5', hex: '#204d77' },
-  { name: 'orange', hex: '#f17d40' },
-  { name: 'blue2', hex: '#338ed8' },
-  { name: 'mint', hex: '#0BA373' },
-  { name: 'green', hex: '#0BA373' },
-  { name: 'carmine', hex: '#e4553e' },
-  { name: 'yellow', hex: '#f0ad4e' },
-  { name: 'seaSerpent', hex: '#5bc0de' },
-  { name: 'azureishWhite', hex: '#d4dded' },
-  { name: 'red', hex: '#FB2300' },
-  { name: 'charcoal', hex: '#303F52' },
-  { name: 'blue6', hex: '#344E73' },
-  { name: 'blue3', hex: '#2C6BC4' },
-  { name: 'blue39', hex: '#2C6BC4' },
-  { name: 'blue1', hex: '#77AEFB' },
-  { name: 'purple', hex: '#7E81C6' },
-  { name: 'darkCerulean', hex: '#103E86' },
-  { name: 'rufous', hex: '#A91708' },
-  { name: 'fulvous', hex: '#E17C00' },
-  { name: 'xanadu', hex: '#7A8577' },
-  { name: 'blue4', hex: '#0074AF' },
-]
 
 const caseSelector = ref<HTMLDivElement>()
 const transformedId = computed(() => getTransformedId(props.icon))
@@ -184,7 +161,6 @@ const collection = computed(() => {
       " @click="copyIconCode(color.name)"
           >
             <Icon :key="icon" outer-class="inline-block text-lg align-middle" :icon="icon" :style="{ color: color.hex }" />
-            {{ color.name }}/ #{{ color.hex }}
           </button>
         </div>
         <button
