@@ -2,6 +2,7 @@
 import { categorySearch, sortedCollectionsInfo, specialTabs } from '../data'
 import { isFavoritedCollection, recentIconIds, sortAlphabetically, toggleFavoriteCollection } from '../store'
 import { isElectron } from '../env'
+import { colors } from '../utils/colors'
 
 const route = useRoute()
 const current = computed(() => route.path.split('/').slice(-1)[0])
@@ -61,6 +62,17 @@ const collections = computed(() => {
           />
         </button>
       </div>
+    </div>
+
+    <div class="flex flex-wrap flex-grow w-full py-6 justify-center items-center">
+      <span
+        v-for="color in colors"
+        :key="color.name"
+        class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 mr-2"
+        :style="{ color: color.hex }"
+      >
+        {{ color.hex }}
+      </span>
     </div>
 
     <!-- Collections -->
