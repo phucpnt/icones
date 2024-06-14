@@ -1,5 +1,6 @@
 import { join, resolve } from 'node:path'
 import { rmSync } from 'node:fs'
+import process from 'node:process'
 import { defineConfig } from 'vite'
 import Pages from 'vite-plugin-pages'
 import Components from 'unplugin-vue-components/vite'
@@ -9,6 +10,7 @@ import dayjs from 'dayjs'
 import Vue from '@vitejs/plugin-vue'
 import UnoCSS from 'unocss/vite'
 import fg from 'fast-glob'
+
 import electron from 'vite-plugin-electron'
 import renderer from 'vite-plugin-electron-renderer'
 import esmodule from 'vite-plugin-esmodule'
@@ -36,7 +38,6 @@ export default defineConfig(({ mode }) => {
       isElectron && renderer(),
       isElectron && esmodule(['prettier']),
       Vue({
-        reactivityTransform: true,
         customElement: [
           'iconify-icon',
         ],
@@ -55,13 +56,16 @@ export default defineConfig(({ mode }) => {
       AutoImport({
         imports: [
           'vue',
-          'vue/macros',
           'vue-router',
           '@vueuse/core',
         ],
         dts: 'src/auto-imports.d.ts',
       }),
       !isElectron && VitePWA({
+        strategies: 'injectManifest',
+        srcDir: 'src',
+        filename: 'sw.ts',
+        registerType: 'autoUpdate',
         manifest: {
           name: 'Icônes',
           short_name: 'Icônes',
@@ -84,11 +88,18 @@ export default defineConfig(({ mode }) => {
               options.includeAssets = fg.sync('**/*.*', { cwd: join(process.cwd(), 'public'), onlyFiles: true })
           },
         },
+        devOptions: {
+          enabled: process.env.SW_DEV === 'true',
+          /* when using generateSW the PWA plugin will switch to classic */
+          type: 'module',
+          navigateFallback: 'index.html',
+        },
       }),
       UnoCSS(),
     ],
     define: {
       __BUILD_TIME__: JSON.stringify(dayjs().format('YYYY/MM/DD HH:mm')),
+      PWA: !isElectron && (process.env.NODE_ENV === 'production' || process.env.SW_DEV === 'true'),
     },
     resolve: {
       alias: {

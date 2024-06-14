@@ -3,6 +3,7 @@ import { getIconSnippet, toComponentName } from '../utils/icons'
 import { collections } from '../data'
 import { activeMode, copyPreviewColor, getTransformedId, inBag, preferredCase, previewColor, pushRecentIcon, showCaseSelect, showHelp, toggleBag } from '../store'
 import { Download } from '../utils/pack'
+import { dataUrlToBlob } from '../utils/dataUrlToBlob'
 import { idCases } from '../utils/case'
 import { colors } from '../utils/colors'
 
@@ -53,13 +54,32 @@ async function copyText(text?: string) {
   return false
 }
 
+async function copyPng(dataUrl: string): Promise<boolean> {
+  try {
+    const blob = dataUrlToBlob(dataUrl)
+    const item = new ClipboardItem({ 'image/png': blob })
+    await navigator.clipboard.write([item])
+    return true
+  }
+  catch (e) {
+    console.error('Failed to copy png error', e)
+    return false
+  }
+}
+
 async function copy(type: string) {
   pushRecentIcon(props.icon)
-  const text = await getIconSnippet(props.icon, type, true, color.value)
-  if (!text)
+
+  const svg = await getIconSnippet(props.icon, type, true, color.value)
+  if (!svg)
     return
 
-  emit('copy', await copyText(text))
+  emit(
+    'copy',
+    type === 'png'
+      ? await copyPng(svg)
+      : await copyText(svg),
+  )
 }
 
 async function copyIconCode(colorCode: string) {
@@ -74,10 +94,11 @@ async function download(type: string) {
   const text = await getIconSnippet(props.icon, type, false, color.value)
   if (!text)
     return
-
-  const name = `${toComponentName(props.icon)}.${type}`
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' })
-
+  const ext = (type === 'solid' || type === 'qwik' || type === 'react-native') ? 'tsx' : type
+  const name = `${toComponentName(props.icon)}.${ext}`
+  const blob = type === 'png'
+    ? dataUrlToBlob(text)
+    : new Blob([text], { type: 'text/plain;charset=utf-8' })
   Download(blob, name)
 }
 
@@ -137,6 +158,13 @@ const collection = computed(() => {
             <span class="flex-auto mr-2">{{ v(icon) }}</span>
           </div>
         </div>
+      </div>
+      <div v-if="collection?.license">
+        <a
+          class="text-xs opacity-50 hover:opacity-100"
+          :href="collection.license.url"
+          target="_blank"
+        >{{ collection.license.title }}</a>
       </div>
 
       <p v-if="showCollection && collection" class="flex mb-1 text-gray-500 text-sm">
@@ -220,42 +248,60 @@ const collection = computed(() => {
               JSX
             </button>
           </div>
-          <div class="mr-4">
-            <div class="my-1 text-gray-500 text-sm">
-              Components
-            </div>
-            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('vue')">
-              Vue
-            </button>
-            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('vue-ts')">
-              Vue<sup class="opacity-50 -mr-1">TS</sup>
-            </button>
-            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('jsx')">
-              React
-            </button>
-            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('tsx')">
-              React<sup class="opacity-50 -mr-1">TS</sup>
-            </button>
-            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('svelte')">
-              Svelte
-            </button>
-            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('qwik')">
-              Qwik
-            </button>
-            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('unplugin')">
-              Unplugin Icons
-            </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('svg')">
+            SVG
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('svg-symbol')">
+            SVG Symbol
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('png')">
+            PNG
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('html')">
+            Iconify
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('pure-jsx')">
+            JSX
+          </button>
+        </div>
+        <div class="mr-4">
+          <div class="my-1 text-gray-500 text-sm">
+            Components
           </div>
-          <div class="mr-4">
-            <div class="my-1 text-gray-500 text-sm">
-              Links
-            </div>
-            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('url')">
-              URL
-            </button>
-            <button class="btn small mr-1 mb-1 opacity-75" @click="copy('data_url')">
-              Data URL
-            </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('vue')">
+            Vue
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('vue-ts')">
+            Vue<sup class="opacity-50 -mr-1">TS</sup>
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('jsx')">
+            React
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('tsx')">
+            React<sup class="opacity-50 -mr-1">TS</sup>
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('svelte')">
+            Svelte
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('qwik')">
+            Qwik
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('solid')">
+            Solid
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('astro')">
+            Astro
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('react-native')">
+            React Native
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="copy('unplugin')">
+            Unplugin Icons
+          </button>
+        </div>
+        <div class="mr-4">
+          <div class="my-1 text-gray-500 text-sm">
+            Links
           </div>
           <div class="mr-4">
             <div class="my-1 text-gray-500 text-sm">
@@ -280,25 +326,45 @@ const collection = computed(() => {
               Qwik
             </button>
           </div>
-          <div class="mr-4">
-            <div class="my-1 text-gray-500 text-sm">
-              View on
-            </div>
-            <a
-              v-if="collection" class="btn small mr-1 mb-1 opacity-75"
-              :href="`https://icon-sets.iconify.design/${collection.id}/?query=${icon.split(':')[1]}`" target="_blank"
-            >
-              Iconify
-            </a>
-            <a
-              v-if="collection" class="btn small mr-1 mb-1 opacity-75"
-              :href="`https://uno.antfu.me/?s=i-${icon.replace(':', '-')}`" target="_blank"
-            >
-              UnoCSS
-            </a>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="download('svg')">
+            SVG
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="download('png')">
+            PNG
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="download('vue')">
+            Vue
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="download('jsx')">
+            React
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="download('tsx')">
+            React<sup class="opacity-50 -mr-1">TS</sup>
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="download('svelte')">
+            Svelte
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="download('qwik')">
+            Qwik
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="download('solid')">
+            Solid
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="download('astro')">
+            Astro
+          </button>
+          <button class="btn small mr-1 mb-1 opacity-75" @click="download('react-native')">
+            React Native
+          </button>
+        </div>
+        <div class="mr-4">
+          <div class="my-1 text-gray-500 text-sm">
+            View on
           </div>
         </div>
       </div>
     </div>
   </div>
 </template>
+../utils/copyPng
+../utils/svgToPng

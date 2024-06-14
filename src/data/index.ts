@@ -2,7 +2,7 @@ import type { IconifyJSON } from 'iconify-icon'
 import { notNullish } from '@antfu/utils'
 import { addCollection } from 'iconify-icon'
 import { AsyncFzf } from 'fzf'
-import { favoritedCollectionIds, inProgress, isExcludedCollection, isFavoritedCollection, isRecentCollection, progressMessage, recentCollectionIds, sortAlphabetically } from '../store'
+import { favoritedCollectionIds, inProgress, isExcludedCollection, isFavoritedCollection, isRecentCollection, progressMessage, recentCollectionIds } from '../store'
 import { isLocalMode, staticPath } from '../env'
 import { loadCollection, saveCollection } from '../store/indexedDB'
 import infoJSON from './collections-info.json'
@@ -15,8 +15,8 @@ export type PresentType = 'favorite' | 'recent' | 'normal'
 export interface CollectionInfo {
   id: string
   name: string
-  author?: { name: string; url: string }
-  license?: { title: string; url: string }
+  author?: { name: string, url: string }
+  license?: { title: string, url: string }
   url?: string
   sampleIcons?: string[]
   category?: string
@@ -55,13 +55,7 @@ watch([categorySearch, enabledCollections], ([q]) => {
   }
   else {
     fzf.find(q).then((result) => {
-      filteredCollections.value = result
-        .map(i => i.item)
-        .sort((a, b) => {
-          if (sortAlphabetically.value)
-            return a.name.localeCompare(b.name)
-          return 0
-        })
+      filteredCollections.value = result.map(i => i.item)
     }).catch(() => {
       // The search is canceled
     })
@@ -127,7 +121,7 @@ export async function downloadAndInstall(id: string) {
   if (installed.value.includes(id))
     return true
 
-  const data = Object.freeze(await fetch(`${staticPath}/collections/${id}-raw.json`).then(r => r.json()))
+  const data = Object.freeze(await fetch(`${staticPath}/collections/${id}.json`).then(r => r.json()))
 
   addCollection(data)
   installed.value.push(id)
